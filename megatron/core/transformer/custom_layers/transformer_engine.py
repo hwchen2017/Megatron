@@ -5,7 +5,7 @@ from typing import Callable
 
 import torch
 import transformer_engine as te
-from pkg_resources import packaging
+import packaging
 from torch import Tensor
 
 from megatron.core import ModelParallelConfig

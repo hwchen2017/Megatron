@@ -12,10 +12,10 @@ NNODES=1
 NODE_RANK=0
 WORLD_SIZE=$(($GPUS_PER_NODE*$NNODES))
 
-CHECKPOINT_PATH=<Specify path>
-VOCAB_FILE=<Specify path to file>/gpt2-vocab.json
-MERGE_FILE=<Specify path to file>/gpt2-merges.txt
-DATA_PATH=<Specify path and file prefix>_text_document
+VOCAB_FILE="/home/code/dataset/gpt2-vocab.json"
+MERGE_FILE="/home/code/dataset/gpt2-merges.txt"
+DATA_PATH="/home/code/dataset/BookCorpusDataset_text_document"
+
 
 DISTRIBUTED_ARGS="
     --nproc_per_node $GPUS_PER_NODE \
@@ -25,27 +25,52 @@ DISTRIBUTED_ARGS="
     --master_port $MASTER_PORT
 "
 
+
 GPT_ARGS="
-    --tensor-model-parallel-size 2 \
-    --pipeline-model-parallel-size 2 \
-    --sequence-parallel \
-    --num-layers 24 \
-    --hidden-size 1024 \
-    --num-attention-heads 16 \
+    --num-layers 40 \
+    --hidden-size 5120 \
+    --num-attention-heads 64 \
     --seq-length 1024 \
     --max-position-embeddings 1024 \
-    --micro-batch-size 4 \
+    --micro-batch-size 16 \
     --global-batch-size 16 \
     --lr 0.00015 \
-    --train-iters 500000 \
+    --train-iters 50 \
     --lr-decay-iters 320000 \
     --lr-decay-style cosine \
     --min-lr 1.0e-5 \
     --weight-decay 1e-2 \
     --lr-warmup-fraction .01 \
     --clip-grad 1.0 \
-    --fp16
+    --no-gradient-accumulation-fusion \
+    --fp16 \
+    --pipeline-model-parallel-size 8
 "
+# GPT_ARGS="
+    # --sequence-parallel \
+    # --context-parallel-size 4\
+    # --use-mcore-models\
+    # --tensor-model-parallel-size 2
+#     --tensor-model-parallel-size 2 \
+#     --pipeline-model-parallel-size 2 \
+#     --sequence-parallel \
+#     --num-layers 24 \
+#     --hidden-size 1024 \
+#     --num-attention-heads 16 \
+#     --seq-length 1024 \
+#     --max-position-embeddings 1024 \
+#     --micro-batch-size 4 \
+#     --global-batch-size 16 \
+#     --lr 0.00015 \
+#     --train-iters 500000 \
+#     --lr-decay-iters 320000 \
+#     --lr-decay-style cosine \
+#     --min-lr 1.0e-5 \
+#     --weight-decay 1e-2 \
+#     --lr-warmup-fraction .01 \
+#     --clip-grad 1.0 \
+#     --fp16
+# "
 
 DATA_ARGS="
     --data-path $DATA_PATH \
@@ -55,10 +80,10 @@ DATA_ARGS="
 "
 
 OUTPUT_ARGS="
-    --log-interval 100 \
+    --log-interval 1 \
     --save-interval 10000 \
     --eval-interval 1000 \
-    --eval-iters 10
+    --eval-iters 1
 "
 
 torchrun $DISTRIBUTED_ARGS pretrain_gpt.py \
@@ -66,6 +91,6 @@ torchrun $DISTRIBUTED_ARGS pretrain_gpt.py \
     $DATA_ARGS \
     $OUTPUT_ARGS \
     --distributed-backend nccl \
-    --save $CHECKPOINT_PATH \
-    --load $CHECKPOINT_PATH
+    # --save $CHECKPOINT_PATH \
+    # --load $CHECKPOINT_PATH
 

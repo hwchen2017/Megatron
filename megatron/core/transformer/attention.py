@@ -5,7 +5,7 @@ from importlib.metadata import version
 from typing import Union
 
 import torch
-from pkg_resources import packaging
+import packaging
 
 from megatron.core import parallel_state, tensor_parallel
 from megatron.core.models.common.embeddings.rotary_pos_embedding import apply_rotary_pos_emb
