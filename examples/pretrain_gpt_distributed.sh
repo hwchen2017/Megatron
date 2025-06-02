@@ -4,7 +4,7 @@
 
 export CUDA_DEVICE_MAX_CONNECTIONS=1
 
-GPUS_PER_NODE=8
+GPUS_PER_NODE=4
 # Change for multinode config
 MASTER_ADDR=localhost
 MASTER_PORT=6000
@@ -12,10 +12,9 @@ NNODES=1
 NODE_RANK=0
 WORLD_SIZE=$(($GPUS_PER_NODE*$NNODES))
 
-CHECKPOINT_PATH=<Specify path>
-VOCAB_FILE=<Specify path to file>/gpt2-vocab.json
-MERGE_FILE=<Specify path to file>/gpt2-merges.txt
-DATA_PATH=<Specify path and file prefix>_text_document
+VOCAB_FILE="/home/code/dataset/gpt2-vocab.json"
+MERGE_FILE="/home/code/dataset/gpt2-merges.txt"
+DATA_PATH="/home/code/dataset/BookCorpusDataset_text_document"
 
 DISTRIBUTED_ARGS="
     --nproc_per_node $GPUS_PER_NODE \
@@ -26,15 +25,15 @@ DISTRIBUTED_ARGS="
 "
 
 GPT_ARGS="
-    --num-layers 24 \
-    --hidden-size 1024 \
-    --num-attention-heads 16 \
+    --num-layers 32 \
+    --hidden-size 2560 \
+    --num-attention-heads 32 \
     --seq-length 1024 \
     --max-position-embeddings 1024 \
     --micro-batch-size 8 \
-    --global-batch-size 64 \
+    --global-batch-size 32 \
     --lr 0.00015 \
-    --train-iters 500000 \
+    --train-iters 50 \
     --lr-decay-iters 320000 \
     --lr-decay-style cosine \
     --min-lr 1.0e-5 \
@@ -52,10 +51,10 @@ DATA_ARGS="
 "
 
 OUTPUT_ARGS="
-    --log-interval 100 \
+    --log-interval 1 \
     --save-interval 10000 \
     --eval-interval 1000 \
-    --eval-iters 10
+    --eval-iters 1
 "
 
 torchrun $DISTRIBUTED_ARGS pretrain_gpt.py \
@@ -63,5 +62,5 @@ torchrun $DISTRIBUTED_ARGS pretrain_gpt.py \
     $DATA_ARGS \
     $OUTPUT_ARGS \
     --distributed-backend nccl \
-    --save $CHECKPOINT_PATH \
-    --load $CHECKPOINT_PATH
+    # --save $CHECKPOINT_PATH \
+    # --load $CHECKPOINT_PATH
