@@ -732,6 +732,10 @@ def train(forward_step_func, model, optimizer, opt_param_scheduler,
                                        args.micro_batch_size * \
                                        get_num_microbatches()
 
+        max_memory = torch.cuda.max_memory_allocated()
+        if torch.distributed.get_rank() == 0:
+            print(f"Iteration: {iteration}, Maximum memory allocated: {max_memory / 1024**3:.2f} GB")
+
         # Logging.
         loss_scale = optimizer.get_loss_scale().item()
         params_norm = None
