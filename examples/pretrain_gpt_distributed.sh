@@ -4,10 +4,10 @@
 
 export CUDA_DEVICE_MAX_CONNECTIONS=1
 
-GPUS_PER_NODE=4
+GPUS_PER_NODE=1
 # Change for multinode config
 MASTER_ADDR=localhost
-MASTER_PORT=6000
+MASTER_PORT=6010
 NNODES=1
 NODE_RANK=0
 WORLD_SIZE=$(($GPUS_PER_NODE*$NNODES))
@@ -30,8 +30,8 @@ GPT_ARGS="
     --num-attention-heads 32 \
     --seq-length 1024 \
     --max-position-embeddings 1024 \
-    --micro-batch-size 8 \
-    --global-batch-size 32 \
+    --micro-batch-size 2 \
+    --global-batch-size 2 \
     --lr 0.00015 \
     --train-iters 50 \
     --lr-decay-iters 320000 \
@@ -40,7 +40,8 @@ GPT_ARGS="
     --weight-decay 1e-2 \
     --lr-warmup-fraction .01 \
     --clip-grad 1.0 \
-    --fp16
+    --overlap-grad-reduce \
+    --fp16 \
 "
 
 DATA_ARGS="
