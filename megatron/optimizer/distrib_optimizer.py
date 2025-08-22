@@ -414,11 +414,19 @@ class DistributedOptimizer(MixedPrecisionOptimizer):
         self.grad_buffers = list(itertools.chain(*per_model_grad_buffers.values()))
         self.per_model_grad_buffers = per_model_grad_buffers
         self.gbuf_idx_to_model_idx_map = {}
+        
+        # print("Length of grad buffers: ", len(self.grad_buffers))
+
         gbuf_idx = 0
         for model_idx, grad_buffers in self.per_model_grad_buffers.items():
+            # print("model idx: ", model_idx)
             for _ in grad_buffers:
                 self.gbuf_idx_to_model_idx_map[gbuf_idx] = model_idx
                 gbuf_idx += 1
+
+        # print(gbuf_idx)
+        # raise RuntimeError
+
         self.gbuf_ranges = []
         self.per_bucket_numel = []
         self.per_bucket_numel_unpadded = []

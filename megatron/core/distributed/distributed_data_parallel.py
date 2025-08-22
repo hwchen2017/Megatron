@@ -67,6 +67,9 @@ class DistributedDataParallel(MegatronModule):
             bucket_size = None
         self.bucket_size = bucket_size
 
+        # print(f'Using bucket size: {bucket_size}')
+        # raise RuntimeError
+
         self.module = module
         self.grad_buffers = {}
         self.expert_grads = []
@@ -85,10 +88,13 @@ class DistributedDataParallel(MegatronModule):
                 params = grad_dtype_to_params.get(dtype, [])
                 params.append(param)
                 grad_dtype_to_params[dtype] = params
+        
+        #HW: Group parameters by their data type.
 
         # Allocate the grad buffers and map the grads.
         # The grad buffer under the hood creates buckets as appropriate based on bucket_size.
         self.data_parallel_world_size = torch.distributed.get_world_size(group=data_parallel_group)
+
         for dtype, params in grad_dtype_to_params.items():
             self.grad_buffers[dtype] = GradBuffer(
                 dtype,
@@ -99,7 +105,9 @@ class DistributedDataParallel(MegatronModule):
                 self.overlap_grad_reduce,
                 self.use_distributed_optimizer,
             )
+            # hw: Create gradebuffer for each type of gradient.
             self.grad_buffer_param_index_map[dtype] = self.grad_buffers[dtype].param_index_map
+            # hw: param_index_map contains data_start_index, data_end_index, bucket_id,
             for param in params:
                 self.param_to_grad_buffer[param] = self.grad_buffers[dtype]
 

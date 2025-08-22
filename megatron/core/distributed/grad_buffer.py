@@ -215,8 +215,8 @@ class GradBuffer:
         data_start_index = 0
         bucket_data_start_index = data_start_index
         bucket_params = set()
-        self.bucket_indices = []
-        per_bucket_numel_unpadded = []
+        self.bucket_indices = [] # hw: List of tuples (start_index, end_index) for each bucket.
+        per_bucket_numel_unpadded = [] # hw: number of elements in each bucket before padding.
         bucket_id = 0
         for param in params[::-1]:
             # Iterate through parameters in reverse order to roughly follow backprop order,
@@ -255,8 +255,9 @@ class GradBuffer:
             data_start_index = data_end_index
 
         # Add remaining params to a new bucket.
+
         if len(bucket_params) > 0:
-            per_bucket_numel_unpadded.append(data_end_index - bucket_data_start_index)
+            per_bucket_numel_unpadded.append(data_end_index - bucket_data_start_index)      
             data_end_index = _pad_if_needed(data_end_index)
             self.bucket_indices.append((bucket_data_start_index, data_end_index))
 
@@ -268,6 +269,8 @@ class GradBuffer:
         self.data = torch.zeros(
             self.numel, dtype=self.dtype, device=torch.cuda.current_device(), requires_grad=False,
         )
+
+        # print("bucker size ", len(self))
 
         # Finally, map main_grad fields for each parameter with a .grad field.
         bucket_params = set()
@@ -304,6 +307,9 @@ class GradBuffer:
                 numel_unpadded=per_bucket_numel_unpadded[cur_bucket_id],
                 bucket_id=cur_bucket_id,
             )
+        # print("bucker size ", len(self.buckets))
+
+        # raise RuntimeError
 
         if not overlap_grad_reduce:
             assert len(bucket_params) == len(
@@ -325,6 +331,7 @@ class GradBuffer:
                 logger.info(f'Params for bucket {index+1} ({numel} elements):')
                 for param in bucket.params:
                     logger.info(f'    {param_to_name[param]}')
+
 
     def _get(self, shape: torch.Size, start_index: int) -> torch.Tensor:
         """
